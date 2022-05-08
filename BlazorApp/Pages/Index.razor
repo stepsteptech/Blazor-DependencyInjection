@@ -1,0 +1,84 @@
+﻿@page "/"
+@using ServiceLayer
+@using DomainClassesLayer.Entities
+@inherits OwningComponentBase<IEmployeeService>
+
+
+
+    <div class="alert alert-info">
+                
+                <p>
+                In this demo, you will learn how to create different layers in yor programs and how they relate to each other,
+                and how to <b>inject dependencies</b> (Dependency Injection) in <b>Blazor</b> and work with the <b>Sqlite database</b> using EfCore.
+                </p>
+                               
+                <p>
+                You can use <a href="https://youtu.be/seT7dtLrsD0"><b> this link </b></a> to watch the educational video in my channel on youtube.
+                Do not forget to subscribe to the channel. I am looking forward to your commets.
+                </p>
+                
+                <p>
+                 Specal thanks <a href="https://www.youtube.com/channel/UC17Tc2MsSm678SCL3jKEq_g"><b>TECHLAZOR</b></a>
+                </p>
+            </div>
+
+   
+
+    <button class="btn btn-success" @onclick=@(async ()=>await AddNewEmployeeAsync())>Add New Employee</button>
+
+    <br />
+    @if(employees.Any())
+{
+    <ul>
+    @foreach (var emp in employees)
+    {
+        <li>@emp.Name | @emp.LastName | @emp.Salary | <button class="btn btn-danger" @onclick=@(async ()=>await DeleteEmployeeAsync(@emp.Id))>Delete Employee</button></li>
+        
+    }
+    </ul>
+}
+else
+{
+    <p>No record Found!</p>
+}
+
+@code
+{
+    private IEmployeeService employeeService => Service;
+    List<Employee> employees = new List<Employee>();
+
+    private async Task AddNewEmployeeAsync()
+    {
+        Employee emp = new Employee
+        {
+            Name="John",
+            LastName="Doe",
+            Salary=25000
+        };
+        await employeeService.AddEmployeeAsync(emp);
+
+        //to show last inserted record in list
+        employees.Add(emp);
+
+
+    }
+
+    //Load employees in page init
+    protected override async Task OnInitializedAsync()
+    {
+        await foreach(var employee in employeeService.GetAllEmployeesAsync())
+        {
+            employees.Add(employee);
+
+        }
+    }
+    private async Task DeleteEmployeeAsync(int employeeId)
+    {
+        if(await employeeService.DeleteEmployeeAsync(employeeId)!=0)
+        {
+            var employeetoremovefromlocallist = employees.Single(emp => emp.Id == employeeId);
+            employees.Remove(employeetoremovefromlocallist);
+        }
+    }
+}
+
